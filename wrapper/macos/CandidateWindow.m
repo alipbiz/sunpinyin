@@ -42,15 +42,17 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
 
 @interface CandidateView : NSView {
     NSAttributedString  *_string;
+    NSColor             *_bgColor;
 }
 
--(void) setAttributedString:(NSAttributedString *)str;
+-(void)setAttributedString:(NSAttributedString *)str;
+-(void)setBgColor:(NSColor*)color;
 
 @end
 
 @implementation CandidateView
 
--(void) setAttributedString:(NSAttributedString *)str
+-(void)setAttributedString:(NSAttributedString *)str
 {
     [str retain];
     [_string release];
@@ -58,21 +60,39 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
     [self setNeedsDisplay:YES];
 }
 
+-(NSColor*)bgColor
+{
+    return _bgColor;
+}
+    
+-(void)setBgColor:(NSColor*)color
+{
+    [color retain];
+    [_bgColor release];
+    _bgColor = color;
+}
+
 - (void)drawRect:(NSRect)rect 
 {
     if (!_string)
         return;
-        
+
+    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:5 yRadius:5];
+    [_bgColor set];
+    [path fill];
+
     NSPoint stringOrigin;
     NSSize stringSize = [_string size];
-    stringOrigin.x = rect.origin.x + ( rect.size.width - stringSize.width)/2;
-    stringOrigin.y = rect.origin.y + ( rect.size.height - stringSize.height)/2;
+    stringOrigin.x = rect.origin.x + (rect.size.width  - stringSize.width)/2;
+    stringOrigin.y = rect.origin.y + (rect.size.height - stringSize.height + 1)/2;
+
     [_string drawAtPoint:stringOrigin];
 }
 
 - (void) dealloc 
 {
     [_string release];
+    [_bgColor release];
     [super dealloc];
 }
 
@@ -83,7 +103,6 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
 -(id)init
 {
     _font = [[NSFont fontWithName:@"Hei" size:16] retain];
-    _bgColor =  [[NSColor colorWithDeviceRed:1.0 green:0.5 blue:0.0 alpha:0.8] retain];
     _fgColor = [[NSColor whiteColor] retain];
     _hlColor = [[NSColor blueColor] retain];
 
@@ -96,11 +115,11 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
                                 backing:NSBackingStoreBuffered
                                 defer:NO];
 
+    [_window setAlphaValue:1.0];
     [_window setLevel:NSScreenSaverWindowLevel];
-    [_window setHasShadow: YES];    
+    [_window setHasShadow:YES];    
     [_window setOpaque:NO];
-
-    [_window setBackgroundColor:_bgColor];
+    [_window setBackgroundColor:[NSColor clearColor]];
 
     _view = [[CandidateView alloc] initWithFrame:[[_window contentView] frame]];
     [_window setContentView:_view];
@@ -121,19 +140,16 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
     [_attr setObject:_font forKey:NSFontAttributeName];
 }
 
--(NSColor *)bgColor
+-(NSColor*)bgColor
 {
-    return _bgColor;
+    return [(CandidateView*)_view bgColor];
 }
 
 -(void)setBgColor:(NSColor*)color
 {
-    [color retain];
-    [_bgColor release];
-    _bgColor = color;
-    [_window setBackgroundColor:color];
-}
-
+    [(CandidateView*)_view setBgColor:color];
+}     
+     
 -(NSColor *)fgColor
 {
     return _fgColor;
@@ -185,7 +201,7 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
     NSSize strSize = [string size];
 
     tuningFrameForScreen (&winRect, strSize, cursorRect);
-    [_window setFrame:winRect display:NO];
+    [_window setFrame:winRect display:YES animate:NO];    
     
     [(CandidateView*)_view setAttributedString:string];
     [string release];
@@ -201,7 +217,6 @@ static void tuningFrameForScreen (NSRect *, NSSize, NSRect);
 - (void) dealloc 
 {
     [_font release];
-    [_bgColor release];
     [_fgColor release];
     [_hlColor release];
     [_attr release];

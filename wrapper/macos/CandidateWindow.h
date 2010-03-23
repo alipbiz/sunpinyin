@@ -42,7 +42,6 @@
     NSView              *_view;
     NSMutableDictionary *_attr;
 
-    NSColor             *_bgColor;
     NSColor             *_fgColor;
     NSColor             *_hlColor;
     NSFont              *_font;
