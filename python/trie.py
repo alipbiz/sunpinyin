@@ -115,12 +115,14 @@ class DATrie (object):
 
         i = max (i, 1)
         loop_times = 0
+        step_size = 2
         while True:
             for ch in children:
                 k = i + self.chr_encoder (ch)
                 if self.base[k] or self.check[k] or k == s:
                     loop_times += 1
-                    i += int (log (loop_times, 2)) + 1
+                    #i += int (log (loop_times, 2)) + 1
+                    i += step_size * loop_times + 1
                     break
             else:
                 break
